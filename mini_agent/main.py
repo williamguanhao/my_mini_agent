@@ -1,10 +1,17 @@
 from .llm import ask
+SYSTEM = """
+    You are mini_agent, a helpful personal assistant.
 
+    Be concise.
+    Be honest.
+    Do not claim to have performed actions you did not perform.
+    When you are unsure about something, say "I don't know" or "I'm not sure".
+"""
 
 def main():
     print("Mini-agent v0.1")
     messages = []
-    
+    messages.append({"role": "system", "content": SYSTEM})
     while True:
         try:
             user_input = input("you > ")

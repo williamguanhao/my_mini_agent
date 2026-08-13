@@ -1,6 +1,23 @@
 # Learning Changelog
 
+STEP 1  ██████████  Baseline architecture
+STEP 2  ██████████  LLM
+STEP 3  ██████████  Conversation
+STEP 4  ░░░░░░░░░░  One tool
+STEP 5  ░░░░░░░░░░  Tool execution
+STEP 6  ░░░░░░░░░░  Agent loop
+STEP 7  ░░░░░░░░░░  Multiple tools
+STEP 8  ░░░░░░░░░░  Session
+STEP 9  ░░░░░░░░░░  SQLite memory
+STEP 10 ░░░░░░░░░░  Retrieval gate
+STEP 11 ░░░░░░░░░░  Real Waku-like tools
+STEP 12 ░░░░░░░░░░  Gateway
+STEP 13 ░░░░░░░░░░  Tracing
+STEP 14 ░░░░░░░░░░  Evals
+
 ## Step 3 Converstaion history 
+
+user → LLM → answer
 
 ### Added
 - Working memory simple messages list 
@@ -24,7 +41,7 @@ Three files to talk to LLM:
 
 ### Baseline Architecture
 
-my-waku/
+my-mini-agent/
 ├── pyproject.toml
 ├── .env
 └── waku/
