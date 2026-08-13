@@ -3,7 +3,7 @@
 STEP 1  ██████████  Baseline architecture
 STEP 2  ██████████  LLM
 STEP 3  ██████████  Conversation
-STEP 4  ░░░░░░░░░░  One tool
+STEP 4  ██████████  One tool
 STEP 5  ░░░░░░░░░░  Tool execution
 STEP 6  ░░░░░░░░░░  Agent loop
 STEP 7  ░░░░░░░░░░  Multiple tools
@@ -14,6 +14,42 @@ STEP 11 ░░░░░░░░░░  Real Waku-like tools
 STEP 12 ░░░░░░░░░░  Gateway
 STEP 13 ░░░░░░░░░░  Tracing
 STEP 14 ░░░░░░░░░░  Evals
+
+## Step 4 One tool 
+
+user → LLM → tool request → Python executes tool → LLM → answer
+
+### Added
+
+- LLM given a description of the tools
+- LLM ask tool calling
+- Python program actually calls it
+
+### Learned
+
+Three pieces of tool:
+
+                    get_time
+                       │
+          ┌────────────┼────────────┐
+          ▼            ▼            ▼
+      Python         Registry      Schema
+      function       lookup        LLM
+          │            │            │
+          ▼            ▼            ▼
+       executes      resolves     describes  
+
+### Architectural change
+
+my-mini-agent/
+├── pyproject.toml
+├── .env
+└── mini_agent/
+    ├── __init__.py
+    ├── main.py
+    ├── config.py
+    ├── llm.py
+    └── tools.py       ← new
 
 ## Step 3 Converstaion history 
 

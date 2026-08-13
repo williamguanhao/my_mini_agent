@@ -9,6 +9,7 @@ def ask(messages: list[dict], tools: list[dict]) ->str:
     response = client.chat.completions.create(
         model=MODEL,
         messages=messages,
+        tools=tools,
         max_tokens=1024
     )
-    return response.choices[0].message.content
+    return response
