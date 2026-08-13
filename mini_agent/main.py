@@ -1,5 +1,6 @@
 from .llm import ask
 from .tools import TOOL_REGISTRY
+import json
 SYSTEM = """
     You are mini_agent, a helpful personal assistant.
 
@@ -20,35 +21,80 @@ TOOLS = [
                 "required": [],
             },
         },
-    }
+    },
+        {
+        "type": "function",
+        "function": {
+            "name": "calculate",
+            "description": "Calculate a mathematical expression.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "expression": {
+                        "type": "string",
+                        "description": "A mathematical expression such as 12 * 5",
+                    }
+                },
+                "required": ["expression"],
+            },
+        },
+    },
 ]
 
 def execute_tool(tool_call):
     name = tool_call.function.name
 
-    tool = TOOL_REGISTRY[name]
+    tool_called = TOOL_REGISTRY.get(name)
+    if tool_called is None:
+        return f"Unknown tool: {name}"
+    try:
+        arguments = json.loads(
+            tool_call.function.arguments
+            )
+        return tool_called(**arguments)
+    except json.JSONDecodeError:
+        return f"Invalid arguments for tool {name}"
 
-    return tool()
-
-def main():
-    print("Mini-agent v0.1")
+def run_agent(user_input: str):
     messages = []
     messages.append({"role": "system", "content": SYSTEM})
+    messages.append({"role": "user", "content": user_input})
+
     while True:
-        try:
-            user_input = input("you > ")
-            messages.append({"role": "user", "content": user_input})
-        except (EOFError, KeyboardInterrupt):
-            print()
+        response = ask(messages, TOOLS)
+
+        message = response.choices[0].message
+
+        # Keep the assistant's response in the conversation.
+        messages.append(
+            message.model_dump(exclude_none=True)
+        )
+
+        # No tool call means we're finished.
+        if not message.tool_calls:
+            return message.content
+
+        # Execute every requested tool.
+        for tool_call in message.tool_calls:
+            result = execute_tool(tool_call)
+            print(f"Tool called {tool_call.function.name} returned: {result}")
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tool_call.id,
+                "content": result,
+            })
+
+
+def main():
+    while True:
+        user_input = input("you > ")
+
+        if user_input in {"quit", "exit"}:
             break
 
-        if user_input.strip() in {"quit", "exit"}:
-            break
+        answer = run_agent(user_input)
 
-        answer = ask(messages, TOOLS).choices[0].message  # Assuming no tools are used
-        messages.append({"role": "assistant", "content": answer.content})
-        print(f"MINI > {answer.content}")
-        print("TOOLS CALLS:", [execute_tool(tool_call) for tool_call in answer.tool_calls])
+        print(f"mini_agent > {answer}")
 
 
 if __name__ == "__main__":
