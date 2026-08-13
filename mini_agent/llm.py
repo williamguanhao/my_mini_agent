@@ -5,10 +5,11 @@ client = OpenAI(
     api_key=API_KEY,
     base_url=BASE_URL
 )
-
-def ask(promt: str) ->str:
+def ask(messages: list[dict], tools: list[dict]) ->str:
     response = client.chat.completions.create(
         model=MODEL,
-        messages=[{"role": "user", "content": promt}],
+        messages=messages,
+        tools=tools,
+        max_tokens=1024
     )
     return response.choices[0].message.content

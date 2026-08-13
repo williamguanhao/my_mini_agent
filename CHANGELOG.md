@@ -1,5 +1,11 @@
 # Learning Changelog
 
+## Step 3 Converstaion history 
+
+### Added
+- Working memory simple messages list 
+- System prompt
+
 ## Step 1 & 2 make the LLM runnable
 
 ### Baseline 
