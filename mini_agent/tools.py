@@ -1,15 +1,46 @@
 from datetime import datetime
+from .tool import Tool
+from .registry import ToolRegistry
 
 def get_time() -> str:
     return datetime.now().astimezone().isoformat()
 
-def calculate(expression: str) -> str:
-    # Temporary simple implementation.
-    # We'll make this safer later.
-    result = eval(expression)
-    return str(result)
+def add(a: float, b: float) -> float:
+    return a + b
 
-TOOL_REGISTRY = {
-    "get_time": get_time,
-    "calculate": calculate,
-}
+get_time_tool = Tool(
+    name="get_time",
+    description="Get the current local time.",
+    parameters={
+        "type": "object",
+        "properties": {},
+        "required": [],
+    },
+    function=get_time
+)
+
+add_tool = Tool(
+    name="add",
+    description="Add two numbers.",
+    parameters={
+        "type": "object",
+        "properties": {
+            "a": {
+                "type": "number",
+                "description": "The first number to add.",
+            },
+            "b": {
+                "type": "number",
+                "description": "The second number to add.",
+            },
+        },
+        "required": ["a", "b"],
+    },
+    function=add
+)   
+
+TOOLS = [
+    get_time_tool,
+    add_tool,
+]
+registry = ToolRegistry(TOOLS)

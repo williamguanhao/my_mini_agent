@@ -5,15 +5,77 @@ STEP 2  ██████████  LLM
 STEP 3  ██████████  Conversation
 STEP 4  ██████████  One tool
 STEP 5  ██████████  Tool execution + argument accept
-STEP 6  ░░░░░░░░░░  Agent loop refactor
+STEP 6  ██████████  Agent loop refactor
 STEP 7  ░░░░░░░░░░  Multiple tools
-STEP 8  ░░░░░░░░░░  Session
+STEP 8  ░░░░░░░░░░  Session + Runtime
 STEP 9  ░░░░░░░░░░  SQLite memory
 STEP 10 ░░░░░░░░░░  Retrieval gate
 STEP 11 ░░░░░░░░░░  Real Waku-like tools
 STEP 12 ░░░░░░░░░░  Gateway
 STEP 13 ░░░░░░░░░░  Tracing
 STEP 14 ░░░░░░░░░░  Evals
+
+## Step 6 Agent loop refactor
+
+### Added
+
+- Tool dataclass
+- Tool registry give LLM schemas to choose function
+- Tools list that contains actual function
+- Agent class that replaces previous run_agent
+- Main create tools -> create registry -> create agent -> give agent user_input
+
+                  ToolRegistry
+                  /           \
+                 /             \
+                ▼               ▼
+         MiniMax schema     execution
+             │                  │
+             ▼                  ▼
+          tools=[]         registry.get()
+                                │
+                                ▼
+                              Tool
+                                │
+                                ▼
+                            function()
+
+
+### Learned
+
+                    ┌──────────────┐
+                    │    main.py   │
+                    └──────┬───────┘
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │    Agent     │
+                    └──────┬───────┘
+                           │
+                 ┌─────────┴─────────┐
+                 ▼                   ▼
+            ┌─────────┐        ┌──────────┐
+            │   LLM   │        │ Registry │
+            └────┬────┘        └────┬─────┘
+                 │                  │
+                 │             ┌────┴────┐
+                 │             ▼         ▼
+                 │          Tool A     Tool B
+                 │
+                 └──────────────┐
+                                ▼
+                             response
+
+### Architectural change
+
+mini_agent/
+├── main.py
+├── config.py
+├── llm.py
+├── tools.py
+├── tool.py          ← new
+├── registry.py      ← new
+└── agent.py         ← new
 
 ## Step 5 Tool execution + argument accept
 
