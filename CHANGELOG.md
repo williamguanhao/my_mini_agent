@@ -6,7 +6,7 @@ STEP 3  ██████████  Conversation
 STEP 4  ██████████  One tool
 STEP 5  ██████████  Tool execution + argument accept
 STEP 6  ██████████  Agent loop refactor
-STEP 7  ░░░░░░░░░░  Multiple tools
+STEP 7  ██████████  Multiple tools
 STEP 8  ░░░░░░░░░░  Session + Runtime
 STEP 9  ░░░░░░░░░░  SQLite memory
 STEP 10 ░░░░░░░░░░  Retrieval gate
@@ -14,6 +14,35 @@ STEP 11 ░░░░░░░░░░  Real Waku-like tools
 STEP 12 ░░░░░░░░░░  Gateway
 STEP 13 ░░░░░░░░░░  Tracing
 STEP 14 ░░░░░░░░░░  Evals
+
+## Step 7 Multiply tool
+
+### Added
+- Full +-*/ tools
+- Error boundary
+             Agent
+               │
+               ▼
+        ┌──────────────┐
+        │ Tool boundary│
+        └──────┬───────┘
+               │
+          Python code
+               │
+        ┌──────┴──────┐
+        │             │
+      success       failure
+        │             │
+        ▼             ▼
+     result          error
+        │             │
+        └──────┬──────┘
+               ▼
+             Agent
+### Learned
+- The model can choose from a dynamically registered set of tools, and the agent runtime doesn't need to know the individual tools.
+- The Agent does not contain special logic for each tool. Rather it calls tools on demand until no tool called.
+- Setting Error boundry: A tool failure becomes information available to the agent rather than a fatal failure of the agent itself.
 
 ## Step 6 Agent loop refactor
 
