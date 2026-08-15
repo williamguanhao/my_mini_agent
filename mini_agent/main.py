@@ -4,6 +4,7 @@ from .registry import ToolRegistry
 from .llm import LLM
 from .session import Session
 from .runtime import Runtime
+from .memory import SQLiteMemory
 from .config import API_KEY, MODEL, BASE_URL
 
 SYSTEM = """
@@ -17,7 +18,9 @@ SYSTEM = """
 
 def main():
 
-    session = Session(session_id="default_session")
+    memory = SQLiteMemory()
+
+    session = Session(session_id="demo_session", memory=memory)
 
     llm = LLM(
         api_key=API_KEY,

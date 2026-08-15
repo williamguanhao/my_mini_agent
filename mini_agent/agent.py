@@ -54,7 +54,7 @@ class Agent:
                 print(f"mini_agent > {tool_call.function.name}({tool_call.function.arguments}) = {tool_response}")
                 print(f"Tool call ID: {tool_call.id}")
                 self.session.add_tool_message(
-                    tool_call.id,
-                    tool_call.function.name,
-                    tool_response
+                    tool_call_id = tool_call.id,
+                    tool_name = tool_call.function.name,
+                    content = tool_response
                 )

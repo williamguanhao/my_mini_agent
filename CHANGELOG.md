@@ -8,12 +8,101 @@ STEP 5  ██████████  Tool execution + argument accept
 STEP 6  ██████████  Agent loop refactor
 STEP 7  ██████████  Multiple tools
 STEP 8  ██████████  Session + Runtime
-STEP 9  ░░░░░░░░░░  SQLite memory
+STEP 9  ██████████  SQLite memory
 STEP 10 ░░░░░░░░░░  Retrieval gate
 STEP 11 ░░░░░░░░░░  Real Waku-like tools
 STEP 12 ░░░░░░░░░░  Gateway
 STEP 13 ░░░░░░░░░░  Tracing
 STEP 14 ░░░░░░░░░░  Evals
+
+
+## Step 9 Memory
+
+### Added
+- Memory class that stores sessions and messages
+- Session updated to contain messages in RAM and memory in Database
+- Reconstructed message to handle tool call
+                           Agent
+                       /      |      \
+                      ▼       ▼       ▼
+                    LLM    Session   Runtime
+                              │         │
+                              ▼         ▼
+                           Memory    Registry
+                              │         │
+                              ▼         ▼
+                           SQLite      Tool
+### Learned
+
+                         Agent
+                           │
+                           ▼
+                        Session
+                           │
+              ┌────────────┼────────────┐
+              │            │            │
+              ▼            ▼            ▼
+            User       Assistant       Tool
+           message      tool_call      result
+              │            │            │
+              └────────────┼────────────┘
+                           ▼
+                     SQLiteMemory
+                           │
+                           ▼
+                       SQLite DB
+
+LLM
+    talk to MiniMax
+
+Agent
+    orchestrate
+
+Session
+    represent one conversation
+
+Memory
+    persist/retrieve conversation
+
+SQLite
+    actual storage
+
+Runtime
+    execute actions
+
+Registry
+    locate tools
+
+Tool
+    perform capability
+
+Tool call message:
+{
+    "role": "assistant",
+    "content": None,
+    "tool_calls": [
+        {
+            "id": "call_123",
+            "type": "function",
+            "function": {
+                "name": "multiply",
+                "arguments": "{\"a\": 10, \"b\": 20}"
+            }
+        }
+    ]
+}
+
+### Architectural change
+mini_agent/
+├── __init__.py
+├── agent.py
+├── llm.py
+├── tool.py
+├── registry.py
+└── session.py
+└── runtime.py
+└── memory.py       ← new
+memory.db           ← new
 
 ## Step 8 Session
 
