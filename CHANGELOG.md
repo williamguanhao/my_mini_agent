@@ -9,13 +9,76 @@ STEP 6  ██████████  Agent loop refactor
 STEP 7  ██████████  Multiple tools
 STEP 8  ██████████  Session + Runtime
 STEP 9  ██████████  SQLite memory
-STEP 10 ░░░░░░░░░░  Retrieval gate
+STEP 10 ██████████  Retrieval gate
 STEP 11 ░░░░░░░░░░  Real Waku-like tools
 STEP 12 ░░░░░░░░░░  Gateway
 STEP 13 ░░░░░░░░░░  Tracing
 STEP 14 ░░░░░░░░░░  Evals
 
+## Step 10 Retrieval gate
 
+### Added
+- Retrieval gate
+
+                       Agent
+                    /    |    \
+                   ▼     ▼     ▼
+                 LLM  Session Runtime
+                       │
+                       ▼
+                    Memory
+                       │
+                       ▼
+                     SQLite
+
+                 Agent
+                   │
+                   ▼
+                Retriever
+                   │
+                   ▼
+                Session
+### Learned
+- Memory: "What information do we have?"
+- Retriever: "What information should we use?" 
+- LLM: "What should I do with it?" 
+User
+ │
+ ▼
+Agent
+ │
+ ├── add message
+ │       │
+ │       ▼
+ │     Session
+ │       │
+ │       ▼
+ │     Memory
+ │       │
+ │       ▼
+ │     SQLite
+ │
+ ├── Retriever
+ │       │
+ │       ▼
+ │    relevant context
+ │
+ └── LLM
+         │
+         ▼
+       answer
+
+### Architectural change
+
+mini_agent/
+├── agent.py
+├── session.py
+├── memory.py
+├── retrieval.py       ← new
+├── runtime.py
+├── llm.py
+├── registry.py
+└── tool.py
 ## Step 9 Memory
 
 ### Added

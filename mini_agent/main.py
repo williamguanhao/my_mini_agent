@@ -6,7 +6,7 @@ from .session import Session
 from .runtime import Runtime
 from .memory import SQLiteMemory
 from .config import API_KEY, MODEL, BASE_URL
-
+from .retrieval import Retriever
 SYSTEM = """
     You are mini_agent, a helpful personal assistant.
 
@@ -31,11 +31,14 @@ def main():
 
     runtime = Runtime(registry)
 
+    retriever = Retriever(limit=20)
+
     agent = Agent(
         llm=llm, 
         registry=registry,
         session=session,
         runtime=runtime,
+        retriever=retriever,
         system_prompt=SYSTEM
     )
 

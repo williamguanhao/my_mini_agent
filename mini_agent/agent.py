@@ -3,6 +3,7 @@ from .llm import LLM
 from .registry import ToolRegistry
 from .session import Session
 from .runtime import Runtime
+from .retrieval import Retriever
 SYSTEM = """
     You are mini_agent, a helpful personal assistant.
 
@@ -19,22 +20,28 @@ class Agent:
             registry: ToolRegistry,
             session:Session,
             runtime:Runtime,
+            retriever:Retriever,
             system_prompt:str=SYSTEM
     ):
         self.llm = llm
         self.registry = registry
         self.session = session
         self.runtime = runtime
-        self.system_prompt = system_prompt
+        self.retriever = retriever
+        self.system_prompt = {
+            "role": "system",
+            "content": system_prompt
+        }
 
     def run(self, user_input:str) -> str:
-        self.session.add_system_message(self.system_prompt)
+
         self.session.add_user_message(user_input)
         
         while True:
-
+            context = self.retriever.retrieve(self.session)
             messages = [
-                *self.session.get_messages()
+                self.system_prompt,
+                *context
             ]
             print("Messages sent to LLM:")
             for msg in messages:
