@@ -1,15 +1,18 @@
 from openai import OpenAI
-from .config import API_KEY, MODEL, BASE_URL
 
-client = OpenAI(
-    api_key=API_KEY,
-    base_url=BASE_URL
-)
-def ask(messages: list[dict], tools: list[dict]) ->str:
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=messages,
-        tools=tools,
-        max_tokens=1024
-    )
-    return response
+class LLM:
+    def __init__(self, api_key:str, model:str, base_url:str):
+        self.client = OpenAI(
+            api_key=api_key,
+            base_url=base_url
+        )
+        self.model = model
+
+    def ask(self, messages: list[dict], tools: list[dict]) -> str:
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            tools=tools,
+            max_tokens=1024
+        )
+        return response

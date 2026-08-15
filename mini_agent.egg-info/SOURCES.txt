@@ -1,8 +1,13 @@
 pyproject.toml
 mini_agent/__init__.py
+mini_agent/agent.py
 mini_agent/config.py
 mini_agent/llm.py
 mini_agent/main.py
+mini_agent/registry.py
+mini_agent/session.py
+mini_agent/tool.py
+mini_agent/tools.py
 mini_agent.egg-info/PKG-INFO
 mini_agent.egg-info/SOURCES.txt
 mini_agent.egg-info/dependency_links.txt

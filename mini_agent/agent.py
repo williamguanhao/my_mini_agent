@@ -1,6 +1,8 @@
 import json
-from .llm import ask
+from .llm import LLM
 from .registry import ToolRegistry
+from .session import Session
+from .runtime import Runtime
 SYSTEM = """
     You are mini_agent, a helpful personal assistant.
 
@@ -10,49 +12,49 @@ SYSTEM = """
     When you are unsure about something, say "I don't know" or "I'm not sure".
 """
 class Agent:
-    def __init__(self, registry: ToolRegistry):
-        self.registry = registry
-    def run(self, user_input:str) -> str:
-        messages = []
-        messages.append({"role": "system", "content": SYSTEM})
-        messages.append({"role": "user", "content": user_input})
 
+    def __init__(
+            self, 
+            llm: LLM,
+            registry: ToolRegistry,
+            session:Session,
+            runtime:Runtime,
+            system_prompt:str=SYSTEM
+    ):
+        self.llm = llm
+        self.registry = registry
+        self.session = session
+        self.runtime = runtime
+        self.system_prompt = system_prompt
+
+    def run(self, user_input:str) -> str:
+        self.session.add_system_message(self.system_prompt)
+        self.session.add_user_message(user_input)
+        
         while True:
 
-            response = ask(
+            messages = [
+                *self.session.get_messages()
+            ]
+            print("Messages sent to LLM:")
+            for msg in messages:
+                print(msg)
+            response = self.llm.ask(
                 messages,
                 self.registry.schemas()
             )
             message = response.choices[0].message
-            messages.append(message.model_dump(exclude_none=True))
+            self.session.add_assistant_message(message)
 
             if not message.tool_calls:
                 return message.content
 
             for tool_call in message.tool_calls:
-                tool_response = self.execute_tool(tool_call)
+                tool_response = self.runtime.execute(tool_call)
                 print(f"mini_agent > {tool_call.function.name}({tool_call.function.arguments}) = {tool_response}")
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": tool_call.id,
-                    "name": tool_call.function.name,
-                    "content": str(tool_response)
-                })
-
-    def execute_tool(self, tool_call):
-        name = tool_call.function.name
-
-        try:
-            arguments = json.loads(
-            tool_call.function.arguments
-            )
-        except json.JSONDecodeError as e:
-            return f"Invalid tool arguments: {str(e)}"
-        try:
-            tool = self.registry.get(name)
-        except KeyError:
-            return f"Unknown tool {name}."
-        try:
-            return tool.function(**arguments)
-        except Exception as e:
-            return f"Error executing tool {name}: {str(e)}"
+                print(f"Tool call ID: {tool_call.id}")
+                self.session.add_tool_message(
+                    tool_call.id,
+                    tool_call.function.name,
+                    tool_response
+                )

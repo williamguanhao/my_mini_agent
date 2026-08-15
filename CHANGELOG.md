@@ -7,7 +7,7 @@ STEP 4  ██████████  One tool
 STEP 5  ██████████  Tool execution + argument accept
 STEP 6  ██████████  Agent loop refactor
 STEP 7  ██████████  Multiple tools
-STEP 8  ░░░░░░░░░░  Session + Runtime
+STEP 8  ██████████  Session + Runtime
 STEP 9  ░░░░░░░░░░  SQLite memory
 STEP 10 ░░░░░░░░░░  Retrieval gate
 STEP 11 ░░░░░░░░░░  Real Waku-like tools
@@ -15,9 +15,80 @@ STEP 12 ░░░░░░░░░░  Gateway
 STEP 13 ░░░░░░░░░░  Tracing
 STEP 14 ░░░░░░░░░░  Evals
 
-## Step 7 Multiply tool
+## Step 8 Session
 
 ### Added
+
+- Session class that owns the message
+- Updated Agent to add session
+- LLM class wrapper
+- Runtime execution layer
+                         ┌──────────────┐
+                         │    Agent     │
+                         └──────┬───────┘
+                                │
+              ┌─────────────────┼──────────────────┐
+              │                 │                  │
+              ▼                 ▼                  ▼
+          ┌────────┐       ┌─────────┐       ┌──────────┐
+          │  LLM   │       │ Session │       │ Runtime  │
+          └────────┘       └─────────┘       └────┬─────┘
+                                                   │
+                                                   ▼
+                                            ┌──────────────┐
+                                            │ ToolRegistry │
+                                            └──────┬───────┘
+                                                   │
+                                      ┌────────────┼────────────┐
+                                      ▼            ▼            ▼
+                                   ┌──────┐     ┌──────┐     ┌──────┐
+                                   │ Tool │     │ Tool │     │ Tool │
+                                   └──┬───┘     └──┬───┘     └──┬───┘
+                                      │            │            │
+                                      ▼            ▼            ▼
+                                  function     function     function
+
+### Learned
+- A session answers What "happened during this conversation?"
+- Agent orchestrates. Session stores state.
+- Session ID is important.
+- Session is not memory, session is just current converstaion. MEmory is long-term, persistent, across sessions.
+- Let LLM think. LLM is a desision maker
+- Runtime is a boundrary execution layer.
+LLM
+    decides
+
+Agent
+    orchestrates the loop
+
+Runtime
+    executes actions
+
+Registry
+    finds capabilities
+
+Tool
+    performs one capability
+
+Session
+    remembers the conversation
+
+### Architectural change
+
+mini_agent/
+├── __init__.py
+├── agent.py
+├── llm.py
+├── tool.py
+├── registry.py
+└── session.py       ← new
+└── runtime.py       ← new
+
+
+## Step 7 Multiple tools
+
+### Added
+
 - Full +-*/ tools
 - Error boundary
              Agent
@@ -39,7 +110,9 @@ STEP 14 ░░░░░░░░░░  Evals
         └──────┬──────┘
                ▼
              Agent
+
 ### Learned
+
 - The model can choose from a dynamically registered set of tools, and the agent runtime doesn't need to know the individual tools.
 - The Agent does not contain special logic for each tool. Rather it calls tools on demand until no tool called.
 - Setting Error boundry: A tool failure becomes information available to the agent rather than a fatal failure of the agent itself.
