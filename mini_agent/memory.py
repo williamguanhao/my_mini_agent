@@ -31,6 +31,11 @@ class SQLiteMemory:
                         REFERENCES sessions(id)
                 )
             """)
+    
+    # --------------------------------------------------
+    # Session
+    # --------------------------------------------------
+
     def create_session(self, session_id):
         with self._connect() as conn:
             conn.execute("""
@@ -39,6 +44,11 @@ class SQLiteMemory:
             """,
             (session_id,),
             )
+
+    # --------------------------------------------------
+    # Write message
+    # --------------------------------------------------
+
     def add_message(
             self,
             session_id,
@@ -65,15 +75,47 @@ class SQLiteMemory:
                 message["role"],
                 message["content"],
                 message.get("tool_call_id"),
-                message.get("tool_name"),
+                message.get("name"),
                 tool_calls
             )
         )
 
-    def get_messages(self, session_id):
+
+    # --------------------------------------------------
+    # Helper function to turn SQLite rows to LLM messages
+    # --------------------------------------------------
+
+    def _rows_to_messages(self, rows):
+        messages = []
+        for message_id, role, content, tool_call_id, tool_name, tool_calls in rows:
+            message = {
+                "_id": message_id,
+                "role": role,
+                "content": content
+            }
+            if tool_call_id:
+                message["tool_call_id"] = tool_call_id
+            if tool_name:
+                message["name"] = tool_name
+            if tool_calls:
+                message["tool_calls"] = json.loads(tool_calls)
+            messages.append(message)
+        return messages
+
+
+    # --------------------------------------------------
+    # Read recent messages
+    # --------------------------------------------------
+
+    def get_recent_messages(
+            self, 
+            session_id, 
+            limit=20
+        ):
         with self._connect() as conn:
             rows = conn.execute("""
-            SELECT 
+            SELECT
+                id, 
                 role, 
                 content,
                 tool_call_id,
@@ -81,23 +123,42 @@ class SQLiteMemory:
                 tool_calls
             FROM messages
             WHERE session_id = ?
-            ORDER BY id ASC
+            ORDER BY id DESC
+            LIMIT ?
             """,
-            (session_id,),
+            (session_id, limit),
             ).fetchall()
+        rows.reverse()  # Reverse to get chronological order
+        return self._rows_to_messages(rows)
 
-        messages = []
-        for role, content, tool_call_id, tool_name, tool_calls in rows:
-            message = {
-                "role": role,
-                "content": content
-            }
-            if tool_call_id:
-                message["tool_call_id"] = tool_call_id
-            if tool_name:
-                message["tool_name"] = tool_name
-            if tool_calls:
-                message["tool_calls"] = json.loads(tool_calls)
-            messages.append(message)
+    # --------------------------------------------------
+    # Search messages by keyword
+    # --------------------------------------------------
 
-        return messages
+    def search_messages(
+            self,
+            session_id,
+            query,
+            limit=10
+    ):
+        pattern = f"%{query}%"
+        with self._connect() as conn:
+            rows = conn.execute("""
+            SELECT 
+                id,
+                role, 
+                content,
+                tool_call_id,
+                tool_name,
+                tool_calls
+            FROM messages
+            WHERE session_id = ? AND content LIKE ?
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (session_id, pattern, limit),
+            ).fetchall()
+        rows.reverse()  # Reverse to get chronological order
+        return self._rows_to_messages(rows)
+
+    

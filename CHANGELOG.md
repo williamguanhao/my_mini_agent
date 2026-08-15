@@ -18,7 +18,9 @@ STEP 14 ░░░░░░░░░░  Evals
 ## Step 10 Retrieval gate
 
 ### Added
-- Retrieval gate
+- Let memory retrieve, not on session.
+- Retrieve based on 1) recent N 2) keyword search
+- Retrieval gate.
 
                        Agent
                     /    |    \
@@ -38,10 +40,53 @@ STEP 14 ░░░░░░░░░░  Evals
                    │
                    ▼
                 Session
+Current retrieval logic
+
+                         Agent
+                           │
+                           │ query
+                           ▼
+                      Retriever
+                     /          \
+                    /            \
+                   ▼              ▼
+              recent          keyword search
+                   │              │
+                   └──────┬───────┘
+                          ▼
+                       merge
+                          │
+                     deduplicate
+                          │
+                       sort
+                          │
+                          ▼
+                         LLM
+More on future update
+                    User query
+                        │
+                        ▼
+                   Retriever
+                        │
+             ┌──────────┴──────────┐
+             ▼                     ▼
+       Recent messages       Semantic search
+                                   │
+                                   ▼
+                              embeddings
+                                   │
+                                   ▼
+                           similarity search
+                                   │
+                                   ▼
+                              relevant memories
+
 ### Learned
+
 - Memory: "What information do we have?"
 - Retriever: "What information should we use?" 
 - LLM: "What should I do with it?" 
+
 User
  │
  ▼

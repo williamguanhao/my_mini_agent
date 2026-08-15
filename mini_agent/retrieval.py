@@ -1,8 +1,95 @@
+import re
+
+
+STOP_WORDS = {
+    "what",
+    "is",
+    "the",
+    "a",
+    "an",
+    "do",
+    "i",
+    "my",
+    "you",
+    "we",
+    "are",
+    "was",
+    "were",
+    "to",
+    "of",
+    "and",
+    "in",
+    "on",
+    "for",
+}
+
+
+def keywords(text):
+    words = re.findall(
+        r"\b[a-zA-Z0-9_]+\b",
+        text.lower(),
+    )
+
+    return [
+        word
+        for word in words
+        if word not in STOP_WORDS
+    ]
+
+def clean_message(message):
+
+    return {
+        key: value
+        for key, value in message.items()
+        if key != "_id"
+    }
 class Retriever:
 
-    def __init__(self, limit=20):
-        self.limit = limit
+    def __init__(
+            self, 
+            memory,
+            recent_limit=20,
+            relevent_limit=10
+    ):
+        self.memory = memory
+        self.recent_limit = recent_limit
+        self.relevent_limit = relevent_limit
 
-    def retrieve(self, session):
-        messages = session.get_recent_messages(self.limit)
-        return messages
+    def retrieve(self, 
+                 session,
+                 query,
+    ):
+        recent = self.memory.get_recent_messages(
+            session_id = session.session_id,
+            limit = self.recent_limit
+        )
+
+        relevant = []
+        for keyword in keywords(query):
+            matches = self.memory.search_messages(
+                session_id = session.session_id,
+                query=keyword,
+                limit=self.relevent_limit
+            )
+            relevant.extend(matches)
+        return [
+            clean_message(message)
+            for message in self._merge(
+                recent,
+                relevant
+            )
+        ]
+
+    def _merge(self, recent, relevant):
+
+        messages = recent + relevant
+
+        unique = {}
+
+        for message in messages:
+            unique[message["_id"]] = message
+
+        return sorted(
+            unique.values(),
+            key=lambda message: message["_id"],
+        )

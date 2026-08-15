@@ -38,7 +38,10 @@ class Agent:
         self.session.add_user_message(user_input)
         
         while True:
-            context = self.retriever.retrieve(self.session)
+            context = self.retriever.retrieve(
+                self.session,
+                query=user_input,
+            )
             messages = [
                 self.system_prompt,
                 *context
@@ -52,14 +55,13 @@ class Agent:
             )
             message = response.choices[0].message
             self.session.add_assistant_message(message)
-
+            print(message)
             if not message.tool_calls:
                 return message.content
 
             for tool_call in message.tool_calls:
                 tool_response = self.runtime.execute(tool_call)
                 print(f"mini_agent > {tool_call.function.name}({tool_call.function.arguments}) = {tool_response}")
-                print(f"Tool call ID: {tool_call.id}")
                 self.session.add_tool_message(
                     tool_call_id = tool_call.id,
                     tool_name = tool_call.function.name,

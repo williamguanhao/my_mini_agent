@@ -31,7 +31,7 @@ def main():
 
     runtime = Runtime(registry)
 
-    retriever = Retriever(limit=20)
+    retriever = Retriever(memory=memory, recent_limit=20, relevent_limit=10)
 
     agent = Agent(
         llm=llm, 
@@ -42,6 +42,10 @@ def main():
         system_prompt=SYSTEM
     )
 
+    # -------------------------
+    # Chat loop
+    # -------------------------
+    
     while True:
         user_input = input("you > ")
 
