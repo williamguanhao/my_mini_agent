@@ -1,4 +1,4 @@
-from .tools import TOOLS
+from .tools.time import GetTimeTool
 from .agent import Agent
 from .registry import ToolRegistry
 from .llm import LLM
@@ -27,7 +27,11 @@ def main():
         base_url=BASE_URL,
         model=MODEL)
 
-    registry = ToolRegistry(TOOLS)
+    registry = ToolRegistry()
+
+    registry.register(
+        GetTimeTool()
+    )
 
     runtime = Runtime(registry)
 

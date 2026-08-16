@@ -1,22 +1,22 @@
-from dataclasses import dataclass
-from typing import Any, Callable
+from abc import ABC, abstractmethod
 
+class Tool(ABC):
 
-@dataclass
-class Tool:
-    name:str
-    description:str
-    parameters:dict[str, Any]
-    function: Callable[..., Any]
+    @property
+    @abstractmethod
+    def name(self):
+        pass
 
-    def schema(self) -> dict:
-        return {
-            "type":"function",
-            "function":{
-                "name": self.name,
-                "description": self.description,
-                "parameters": self.parameters
-            }
-        }
-    def execute(self, **kwargs) -> Any:
-        return self.function(**kwargs)
+    @property
+    @abstractmethod
+    def description(self):
+        pass
+
+    @property
+    @abstractmethod
+    def parameters(self):
+        pass
+
+    @abstractmethod
+    def execute(self, argument):
+        pass

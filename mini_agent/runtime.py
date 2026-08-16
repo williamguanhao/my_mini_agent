@@ -19,6 +19,6 @@ class Runtime:
         except KeyError:
             return f"Unknown tool {name}."
         try:
-            return tool.function(**arguments)
+            return tool.execute(arguments)
         except Exception as e:
             return f"Error executing tool {name}: {str(e)}"

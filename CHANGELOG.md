@@ -10,10 +10,74 @@ STEP 7  ██████████  Multiple tools
 STEP 8  ██████████  Session + Runtime
 STEP 9  ██████████  SQLite memory
 STEP 10 ██████████  Retrieval gate
-STEP 11 ░░░░░░░░░░  Real Waku-like tools
+STEP 11 ██████████  Real Waku-like tools
 STEP 12 ░░░░░░░░░░  Gateway
 STEP 13 ░░░░░░░░░░  Tracing
 STEP 14 ░░░░░░░░░░  Evals
+
+## Step 10 Retrieval gate
+
+### Added
+
+- formal tool abstraction
+- new tools directory that contains all the tools
+- registry added new registry
+
+                    ┌──────────────┐
+                    │    Agent     │
+                    └──────┬───────┘
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │     LLM      │
+                    └──────┬───────┘
+                           │
+                      tool_call
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │   Runtime    │
+                    └──────┬───────┘
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │   Registry   │
+                    └──────┬───────┘
+                           │
+                     finds tool
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │ GetTimeTool  │
+                    └──────┬───────┘
+                           │
+                        execute
+                           │
+                           ▼
+                         result
+
+### Learned
+
+- Agent now has a standardized tool system.
+- Runtime becomes generic.
+- Function is passed in tool.
+
+### Architectural change
+
+mini_agent/
+├── agent.py
+├── llm.py
+├── memory.py
+├── session.py
+├── retriever.py
+├── runtime.py
+├── registry.py
+├── tool.py          ← updated tool abstraction
+└── main.py
+├── tools/           ← new tools directory
+│   ├── __init__.py
+│   └── time.py
+│   └── calculator.py
 
 ## Step 10 Retrieval gate
 
