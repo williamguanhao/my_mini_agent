@@ -10,58 +10,59 @@ STEP 7  ██████████  Multiple tools
 STEP 8  ██████████  Session + Runtime
 STEP 9  ██████████  SQLite memory
 STEP 10 ██████████  Retrieval gate
-STEP 11 ██████████  Real Waku-like tools
+STEP 11 ██████████  Robust tools
 STEP 12 ░░░░░░░░░░  Gateway
 STEP 13 ░░░░░░░░░░  Tracing
 STEP 14 ░░░░░░░░░░  Evals
 
-## Step 10 Retrieval gate
+
+## Step 11 Robust tools
 
 ### Added
 
 - formal tool abstraction
 - new tools directory that contains all the tools
 - registry added new registry
+- new note database for long term memory
+- save note
+- read search note
+- robust tool execution and catch error
 
-                    ┌──────────────┐
-                    │    Agent     │
-                    └──────┬───────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │     LLM      │
-                    └──────┬───────┘
-                           │
-                      tool_call
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │   Runtime    │
-                    └──────┬───────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │   Registry   │
-                    └──────┬───────┘
-                           │
-                     finds tool
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │ GetTimeTool  │
-                    └──────┬───────┘
-                           │
-                        execute
-                           │
-                           ▼
-                         result
+Tool
+ │
+ │ name
+ │ description
+ │ parameters
+ │ execute()
+ ▼
+Registry
+ │
+ │ name → Tool
+ ▼
+Runtime
+ │
+ ├── locate
+ ├── parse
+ ├── validate
+ ├── execute
+ └── catch errors
+ ▼
+Agent
+ │
+ ├── add assistant tool-call
+ ├── execute tools
+ ├── add tool result
+ └── loop
+ ▼
+MiniMax
 
 ### Learned
 
 - Agent now has a standardized tool system.
 - Runtime becomes generic.
 - Function is passed in tool.
-
+- Save notes as long term memory.
+- Validating tool, arguments and tool execution making runtime robust and provent agent break down.
 ### Architectural change
 
 mini_agent/
@@ -73,11 +74,12 @@ mini_agent/
 ├── runtime.py
 ├── registry.py
 ├── tool.py          ← updated tool abstraction
-└── main.py
-├── tools/           ← new tools directory
-│   ├── __init__.py
-│   └── time.py
-│   └── calculator.py
+├── main.py
+└──  tools/           ← new tools directory
+    ├── __init__.py
+    ├── time.py
+    ├── calculator.py
+    └── save_note.py
 
 ## Step 10 Retrieval gate
 

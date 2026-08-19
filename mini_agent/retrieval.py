@@ -81,15 +81,14 @@ class Retriever:
         ]
 
     def _merge(self, recent, relevant):
+        # Recent messages should take priority and maintain order
+        # Relevant messages from search should only add context, not reorder
+        messages = recent.copy()
 
-        messages = recent + relevant
+        # Add relevant messages that are not already in recent
+        recent_ids = {msg["_id"] for msg in recent}
+        for msg in relevant:
+            if msg["_id"] not in recent_ids:
+                messages.append(msg)
 
-        unique = {}
-
-        for message in messages:
-            unique[message["_id"]] = message
-
-        return sorted(
-            unique.values(),
-            key=lambda message: message["_id"],
-        )
+        return messages

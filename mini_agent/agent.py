@@ -33,11 +33,11 @@ class Agent:
             "content": system_prompt
         }
 
-    def run(self, user_input:str) -> str:
+    def run(self, user_input:str, max_steps=10) -> str:
 
         self.session.add_user_message(user_input)
         
-        while True:
+        for _ in range(max_steps):
             context = self.retriever.retrieve(
                 self.session,
                 query=user_input,
@@ -61,9 +61,13 @@ class Agent:
 
             for tool_call in message.tool_calls:
                 tool_response = self.runtime.execute(tool_call)
-                print(f"mini_agent > {tool_call.function.name}({tool_call.function.arguments}) = {tool_response}")
+                print(f"mini_agent > {tool_call.function.name}({tool_call.function.arguments}) = {tool_response["content"]}")
                 self.session.add_tool_message(
                     tool_call_id = tool_call.id,
                     tool_name = tool_call.function.name,
-                    content = tool_response
+                    content = tool_response["content"]
                 )
+
+        raise RuntimeError(
+            f"Agent exceeded maximum steps: {max_steps}"
+        )

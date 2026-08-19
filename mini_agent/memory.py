@@ -31,6 +31,17 @@ class SQLiteMemory:
                         REFERENCES sessions(id)
                 )
             """)
+
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS notes (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    session_id TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (session_id)
+                        REFERENCES sessions(id)
+                )
+            """)
     
     # --------------------------------------------------
     # Session
@@ -160,5 +171,81 @@ class SQLiteMemory:
             ).fetchall()
         rows.reverse()  # Reverse to get chronological order
         return self._rows_to_messages(rows)
+
+    def add_note(self, session_id, text):
+
+        with self._connect() as conn:
+
+            conn.execute("""
+                        INSERT INTO notes (
+                            session_id, 
+                            content
+                        )
+                        VALUES (?, ?)
+                        """,
+                        (
+                            session_id,
+                            text
+                        )
+                    )
+
+    def get_notes(self, session_id, limit=20):
+
+        with self._connect() as conn:
+            rows = conn.execute(
+                    """
+                    SELECT
+                        id, 
+                        content,
+                        created_at
+                    FROM notes
+                    WHERE session_id = ?
+                    ORDER BY id DESC
+                    LIMIT ?
+                    """,
+                    (
+                        session_id,
+                        limit,
+                    ),
+                ).fetchall()
+
+        return [
+            {"_id": row[0],
+             "content": row[1],
+             "created_at": row[2],
+            }
+            for row in rows
+        ]
+
+    def search_notes(self, session_id, keyword, limit=20):
+
+        with self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT
+                    id,
+                    content,
+                    created_at
+                FROM notes
+                WHERE session_id = ?
+                  AND content LIKE ?
+                ORDER BY id DESC
+                LIMIT ?
+                """,
+                (
+                    session_id,
+                    f"%{keyword}%",
+                    limit,
+                ),
+            ).fetchall()
+
+        return [
+            {"_id": row[0],
+             "content": row[1],
+             "created_at": row[2],
+            }
+            for row in rows
+        ]
+
 
     

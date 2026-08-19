@@ -1,6 +1,10 @@
 class ToolRegistry:
-    def __init__(self):
+    def __init__(self, tools=None):
         self._tools = {}
+
+        if tools:
+            for tool in tools:
+                self.register(tool)
 
     def register(self, tool):
         self._tools[tool.name] = tool

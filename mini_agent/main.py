@@ -1,4 +1,7 @@
 from .tools.time import GetTimeTool
+from .tools.save_note import SaveNoteTool
+from .tools.calculator import CalculatorTool
+from .tools.read_notes import ReadNotesTool
 from .agent import Agent
 from .registry import ToolRegistry
 from .llm import LLM
@@ -27,11 +30,14 @@ def main():
         base_url=BASE_URL,
         model=MODEL)
 
-    registry = ToolRegistry()
+    tools = [
+        GetTimeTool(),
+        SaveNoteTool(memory=memory, session_id=session.session_id),
+        CalculatorTool(),
+        ReadNotesTool(memory=memory, session_id=session.session_id)
+    ]
 
-    registry.register(
-        GetTimeTool()
-    )
+    registry = ToolRegistry(tools)
 
     runtime = Runtime(registry)
 

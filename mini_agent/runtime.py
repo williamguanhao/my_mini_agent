@@ -6,19 +6,95 @@ class Runtime:
         self.registry = registry
 
     def execute(self, tool_call):
-        name = tool_call.function.name
+        try:
+            name = tool_call.function.name
 
-        try:
-            arguments = json.loads(
-            tool_call.function.arguments
-            )
-        except json.JSONDecodeError as e:
-            return f"Invalid tool arguments: {str(e)}"
-        try:
             tool = self.registry.get(name)
-        except KeyError:
-            return f"Unknown tool {name}."
-        try:
-            return tool.execute(arguments)
+
+            if tool is None:
+                raise ValueError(
+                    f"Unknown tool: {name}"
+                )
+
+            arguments = json.loads(
+                tool_call.function.arguments
+                )
+            
+            self._validate_arguments(
+                    tool,
+                    arguments,
+                )
+
+            result = tool.execute(arguments)
+
+            return {
+                "success": True,
+                "content": str(result)
+            }
+
         except Exception as e:
-            return f"Error executing tool {name}: {str(e)}"
+            return {
+                "success": False,
+                "content":  f"Tool error: {str(e)}"
+            }
+
+
+    def _validate_arguments(self, tool, arguments):
+
+        schema = tool.parameters
+
+        required = schema.get(
+            "required",
+            []
+        )
+
+        properties = schema.get(
+            "properties",
+            {}
+        )
+
+        # Required fields
+        for field in required:
+
+            if field not in arguments:
+                raise ValueError(
+                    f"Missing required argument "
+                    f"'{field}' for tool '{tool.name}'"
+                )
+
+        # Type checking
+        for field, value in arguments.items():
+
+            if field not in properties:
+                raise ValueError(
+                    f"Unexpected argument "
+                    f"'{field}' for tool '{tool.name}'"
+                )
+
+            expected_type = properties[field].get(
+                "type"
+            )
+
+            if expected_type == "string":
+                if not isinstance(value, str):
+                    raise ValueError(
+                        f"Argument '{field}' must be a string"
+                    )
+
+            elif expected_type == "number":
+                if not isinstance(value, (int, float)):
+                    raise ValueError(
+                        f"Argument '{field}' must be a number"
+                    )
+
+            elif expected_type == "integer":
+                if not isinstance(value, int):
+                    raise ValueError(
+                        f"Argument '{field}' must be an integer"
+                    )
+
+            elif expected_type == "boolean":
+                if not isinstance(value, bool):
+                    raise ValueError(
+                        f"Argument '{field}' must be a boolean"
+                    )
