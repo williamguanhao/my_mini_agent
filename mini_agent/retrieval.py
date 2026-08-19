@@ -71,7 +71,13 @@ class Retriever:
                 query=keyword,
                 limit=self.relevent_limit
             )
-            relevant.extend(matches)
+            # Filter out tool results - they need their tool_calls to be valid
+            # Also filter out assistant messages with tool_calls (will be in recent)
+            relevant.extend([
+                m for m in matches
+                if m.get("role") in ("user", "assistant")
+                and not m.get("tool_calls")
+            ])
         return [
             clean_message(message)
             for message in self._merge(

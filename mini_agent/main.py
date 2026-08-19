@@ -4,12 +4,13 @@ from .tools.calculator import CalculatorTool
 from .tools.read_notes import ReadNotesTool
 from .agent import Agent
 from .registry import ToolRegistry
-from .llm import LLM
+from .llm.minimax import MiniMaxLLM
 from .session import Session
 from .runtime import Runtime
 from .memory import SQLiteMemory
 from .config import API_KEY, MODEL, BASE_URL
 from .retrieval import Retriever
+from .gateway import Gateway
 SYSTEM = """
     You are mini_agent, a helpful personal assistant.
 
@@ -25,10 +26,11 @@ def main():
 
     session = Session(session_id="demo_session", memory=memory)
 
-    llm = LLM(
+    llm = MiniMaxLLM(
         api_key=API_KEY,
-        base_url=BASE_URL,
         model=MODEL)
+
+    gateway = Gateway(llm=llm)
 
     tools = [
         GetTimeTool(),
@@ -44,7 +46,7 @@ def main():
     retriever = Retriever(memory=memory, recent_limit=20, relevent_limit=10)
 
     agent = Agent(
-        llm=llm, 
+        gateway=gateway, 
         registry=registry,
         session=session,
         runtime=runtime,

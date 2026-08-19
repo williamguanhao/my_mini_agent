@@ -1,9 +1,9 @@
 import json
-from .llm import LLM
 from .registry import ToolRegistry
 from .session import Session
 from .runtime import Runtime
 from .retrieval import Retriever
+from .gateway import Gateway
 SYSTEM = """
     You are mini_agent, a helpful personal assistant.
 
@@ -16,14 +16,14 @@ class Agent:
 
     def __init__(
             self, 
-            llm: LLM,
+            gateway: Gateway,
             registry: ToolRegistry,
             session:Session,
             runtime:Runtime,
             retriever:Retriever,
             system_prompt:str=SYSTEM
     ):
-        self.llm = llm
+        self.gateway = gateway
         self.registry = registry
         self.session = session
         self.runtime = runtime
@@ -49,22 +49,28 @@ class Agent:
             print("Messages sent to LLM:")
             for msg in messages:
                 print(msg)
-            response = self.llm.ask(
+            response = self.gateway.chat(
                 messages,
                 self.registry.schemas()
             )
-            message = response.choices[0].message
-            self.session.add_assistant_message(message)
-            print(message)
-            if not message.tool_calls:
-                return message.content
+            self.session.add_assistant_message(response)
+            print(response)
+            if not response.tool_calls:
+                return response.content
 
-            for tool_call in message.tool_calls:
+            for tool_call in response.tool_calls:
                 tool_response = self.runtime.execute(tool_call)
-                print(f"mini_agent > {tool_call.function.name}({tool_call.function.arguments}) = {tool_response["content"]}")
+                # Handle both OpenAI format and custom ToolCall format
+                if hasattr(tool_call, 'function'):
+                    func_name = tool_call.function.name
+                    func_args = tool_call.function.arguments
+                else:
+                    func_name = tool_call.name
+                    func_args = tool_call.arguments
+                print(f"mini_agent > {func_name}({func_args}) = {tool_response["content"]}")
                 self.session.add_tool_message(
                     tool_call_id = tool_call.id,
-                    tool_name = tool_call.function.name,
+                    tool_name = func_name,
                     content = tool_response["content"]
                 )
 

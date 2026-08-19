@@ -40,11 +40,21 @@ class Session:
         if message.tool_calls:
             data["tool_calls"] = []
             for tool_call in message.tool_calls:
+                # Handle both OpenAI format and custom ToolCall format
+                if hasattr(tool_call, 'function'):
+                    # OpenAI format
+                    func_name = tool_call.function.name
+                    func_args = tool_call.function.arguments
+                else:
+                    # Custom ToolCall format
+                    func_name = tool_call.name
+                    func_args = tool_call.arguments
+
                 data["tool_calls"].append({
                     "id": tool_call.id,
                     "function": {
-                        "name": tool_call.function.name,
-                        "arguments": tool_call.function.arguments
+                        "name": func_name,
+                        "arguments": func_args
                     }
                 })
 

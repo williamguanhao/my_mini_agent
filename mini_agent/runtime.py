@@ -7,17 +7,19 @@ class Runtime:
 
     def execute(self, tool_call):
         try:
-            name = tool_call.function.name
+            # Handle both OpenAI format and custom ToolCall format
+            if hasattr(tool_call, 'function'):
+                name = tool_call.function.name
+                arguments = json.loads(tool_call.function.arguments)
+            else:
+                name = tool_call.name
+                arguments = json.loads(tool_call.arguments)
 
             tool = self.registry.get(name)
 
             if tool is None:
                 raise ValueError(
                     f"Unknown tool: {name}"
-                )
-
-            arguments = json.loads(
-                tool_call.function.arguments
                 )
             
             self._validate_arguments(

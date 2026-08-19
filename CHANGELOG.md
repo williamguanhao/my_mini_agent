@@ -11,10 +11,60 @@ STEP 8  ██████████  Session + Runtime
 STEP 9  ██████████  SQLite memory
 STEP 10 ██████████  Retrieval gate
 STEP 11 ██████████  Robust tools
-STEP 12 ░░░░░░░░░░  Gateway
+STEP 12 ██████████  Gateway
 STEP 13 ░░░░░░░░░░  Tracing
 STEP 14 ░░░░░░░░░░  Evals
 
+## Step 12 Gateway
+
+### Added
+- Gateway allows different LLM provider
+- Base LLM provider class
+- ToolCall class
+- LLMResponse class
+                    ┌──────────────┐
+                    │    Agent     │
+                    └──────┬───────┘
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │   Gateway    │
+                    └──────┬───────┘
+                           │
+                      BaseLLM
+                           │
+              ┌────────────┼────────────┐
+              ▼            ▼            ▼
+          MiniMax        OpenAI       Future...
+          Adapter        Adapter
+              │            │
+              ▼            ▼
+           MiniMax        OpenAI
+
+### Architectural change
+
+mini_agent/
+├── llm/                ← new llm directory
+│   ├── __init__.py     ← new
+│   ├── base.py         ← new
+│   ├── minimax.py      ← new
+│   ├── openai.py      ← new
+│   └── openrouter.py   ← new
+├── agent.py
+├── config.py
+├── gateway.py
+├── memory.py
+├── session.py
+├── retriever.py
+├── runtime.py
+├── registry.py        
+├── main.py
+└──  tools/           
+    ├── __init__.py
+    ├── time.py
+    ├── calculator.py
+    ├── save_note.py
+    └── read_note.py
 
 ## Step 11 Robust tools
 
@@ -63,6 +113,7 @@ MiniMax
 - Function is passed in tool.
 - Save notes as long term memory.
 - Validating tool, arguments and tool execution making runtime robust and provent agent break down.
+
 ### Architectural change
 
 mini_agent/
@@ -79,7 +130,8 @@ mini_agent/
     ├── __init__.py
     ├── time.py
     ├── calculator.py
-    └── save_note.py
+    ├── save_note.py
+    └── read_note.py
 
 ## Step 10 Retrieval gate
 
