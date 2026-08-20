@@ -1,9 +1,11 @@
 import json
+import time
 
 class Runtime:
 
-    def __init__(self, registry):
+    def __init__(self, registry, tracer=None):
         self.registry = registry
+        self.tracer = tracer
 
     def execute(self, tool_call):
         try:
@@ -27,7 +29,32 @@ class Runtime:
                     arguments,
                 )
 
+            if self.tracer:
+                self.tracer.log(
+                    "TOOL_START",
+                    {
+                        "tool": tool_call.name,
+                        "tool_call_id": tool_call.id,
+                        "arguments": tool_call.arguments,
+                    },
+                )
+
+            start = time.perf_counter() 
+
             result = tool.execute(arguments)
+
+            duration = time.perf_counter() - start
+
+            if self.tracer:
+                self.tracer.log(
+                    "TOOL_END",
+                    {
+                        "duration_ms": round(duration * 1000, 2),
+                        "tool": tool_call.name,
+                        "success": True,
+                        "content": str(result),
+                    },
+                )
 
             return {
                 "success": True,
@@ -35,6 +62,18 @@ class Runtime:
             }
 
         except Exception as e:
+
+            if self.tracer:
+                self.tracer.log(
+                    "TOOL_END",
+                    {
+                        "duration_ms": round(duration * 1000, 2),
+                        "tool": tool_call.name,
+                        "success": False,
+                        "content": f"Tool error: {str(e)}",
+                    },
+                )
+
             return {
                 "success": False,
                 "content":  f"Tool error: {str(e)}"

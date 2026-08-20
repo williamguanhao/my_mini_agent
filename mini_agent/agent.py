@@ -4,6 +4,7 @@ from .session import Session
 from .runtime import Runtime
 from .retrieval import Retriever
 from .gateway import Gateway
+from .tracer import Tracer
 SYSTEM = """
     You are mini_agent, a helpful personal assistant.
 
@@ -21,6 +22,7 @@ class Agent:
             session:Session,
             runtime:Runtime,
             retriever:Retriever,
+            tracer = None,
             system_prompt:str=SYSTEM
     ):
         self.gateway = gateway
@@ -28,6 +30,7 @@ class Agent:
         self.session = session
         self.runtime = runtime
         self.retriever = retriever
+        self.tracer = tracer
         self.system_prompt = {
             "role": "system",
             "content": system_prompt
@@ -35,45 +38,70 @@ class Agent:
 
     def run(self, user_input:str, max_steps=10) -> str:
 
-        self.session.add_user_message(user_input)
-        
-        for _ in range(max_steps):
-            context = self.retriever.retrieve(
-                self.session,
-                query=user_input,
-            )
-            messages = [
-                self.system_prompt,
-                *context
-            ]
-            print("Messages sent to LLM:")
-            for msg in messages:
-                print(msg)
-            response = self.gateway.chat(
-                messages,
-                self.registry.schemas()
-            )
-            self.session.add_assistant_message(response)
-            print(response)
-            if not response.tool_calls:
-                return response.content
+        run_id = self.tracer.start_run()
 
-            for tool_call in response.tool_calls:
-                tool_response = self.runtime.execute(tool_call)
-                # Handle both OpenAI format and custom ToolCall format
-                if hasattr(tool_call, 'function'):
-                    func_name = tool_call.function.name
-                    func_args = tool_call.function.arguments
-                else:
-                    func_name = tool_call.name
-                    func_args = tool_call.arguments
-                print(f"mini_agent > {func_name}({func_args}) = {tool_response["content"]}")
-                self.session.add_tool_message(
-                    tool_call_id = tool_call.id,
-                    tool_name = func_name,
-                    content = tool_response["content"]
+        status = "failed"
+
+        try:
+            self.session.add_user_message(user_input)
+
+    
+            self.tracer.log(
+                "USER_MESSAGE",
+                {
+                    "content": user_input
+                }
+            )    
+            
+            for _ in range(max_steps):
+                context = self.retriever.retrieve(
+                    self.session,
+                    query=user_input,
                 )
+                messages = [
+                    self.system_prompt,
+                    *context
+                ]
 
-        raise RuntimeError(
-            f"Agent exceeded maximum steps: {max_steps}"
-        )
+                response = self.gateway.chat(
+                    messages,
+                    self.registry.schemas()
+                )
+                self.session.add_assistant_message(response)
+                if not response.tool_calls:
+                    return response.content
+
+                for tool_call in response.tool_calls:
+                    tool_response = self.runtime.execute(tool_call)
+                    # Handle both OpenAI format and custom ToolCall format
+                    if hasattr(tool_call, 'function'):
+                        func_name = tool_call.function.name
+                        func_args = tool_call.function.arguments
+                    else:
+                        func_name = tool_call.name
+                        func_args = tool_call.arguments
+                    print(f"mini_agent > {func_name}({func_args}) = {tool_response["content"]}")
+                    self.session.add_tool_message(
+                        tool_call_id = tool_call.id,
+                        tool_name = func_name,
+                        content = tool_response["content"]
+                    )
+
+            raise RuntimeError(
+                f"Agent exceeded maximum steps: {max_steps}"
+            )
+
+        except Exception as e:
+            self.tracer.log(
+                "RUN_ERROR",
+                {
+                    "error": str(e)
+                }
+            )
+            raise 
+
+        finally:
+
+            self.tracer.end_run()
+
+

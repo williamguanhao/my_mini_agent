@@ -1,2 +1,3 @@
 [console_scripts]
+agent-eval = mini_agent.run_eval:main
 mini-agent = mini_agent.main:main

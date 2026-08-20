@@ -12,8 +12,46 @@ STEP 9  ██████████  SQLite memory
 STEP 10 ██████████  Retrieval gate
 STEP 11 ██████████  Robust tools
 STEP 12 ██████████  Gateway
-STEP 13 ░░░░░░░░░░  Tracing
-STEP 14 ░░░░░░░░░░  Evals
+STEP 13 ██████████  Tracing
+STEP 14 ██████████  Evals
+
+## Step 13 Tracing & Step 14 Evals
+
+### Added
+- Tracing added in gateway, agent to trace USER_MESSAGE, LLM_REQUEST, LLM_RESPONSE, TOOL_START and TOOL_END.
+- Adding eval to check tools and answer for given cases.
+
+### Architectural change
+
+mini_agent/
+├── llm/
+│   ├── __init__.py
+│   ├── base.py
+│   ├── minimax.py
+│   ├── openai.py
+│   └── openrouter.py
+├── eval/               ← new eval directory
+│   ├── __init__.py     ← new
+│   ├── case.py         ← new
+│   ├── cases.py        ← new
+│   └── runner.py       ← new
+├── agent.py
+├── config.py
+├── gateway.py
+├── memory.py
+├── session.py
+├── retriever.py
+├── runtime.py
+├── registry.py        
+├── main.py
+├── run_eval.py        ← new
+├── tracer.py          ← new
+└──  tools/           
+    ├── __init__.py
+    ├── time.py
+    ├── calculator.py
+    ├── save_note.py
+    └── read_note.py
 
 ## Step 12 Gateway
 

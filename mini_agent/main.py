@@ -11,6 +11,7 @@ from .memory import SQLiteMemory
 from .config import API_KEY, MODEL, BASE_URL
 from .retrieval import Retriever
 from .gateway import Gateway
+from .tracer import Tracer
 SYSTEM = """
     You are mini_agent, a helpful personal assistant.
 
@@ -26,11 +27,13 @@ def main():
 
     session = Session(session_id="demo_session", memory=memory)
 
+    tracer = Tracer()
+
     llm = MiniMaxLLM(
         api_key=API_KEY,
         model=MODEL)
 
-    gateway = Gateway(llm=llm)
+    gateway = Gateway(llm=llm, tracer=tracer)
 
     tools = [
         GetTimeTool(),
@@ -41,7 +44,7 @@ def main():
 
     registry = ToolRegistry(tools)
 
-    runtime = Runtime(registry)
+    runtime = Runtime(registry, tracer=tracer)
 
     retriever = Retriever(memory=memory, recent_limit=20, relevent_limit=10)
 
@@ -51,6 +54,7 @@ def main():
         session=session,
         runtime=runtime,
         retriever=retriever,
+        tracer=tracer,
         system_prompt=SYSTEM
     )
 

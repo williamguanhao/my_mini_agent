@@ -10,3 +10,4 @@ dependencies = [
 
 [project.scripts]
 mini-agent = "mini_agent.main:main"
+agent-eval = "mini_agent.run_eval:main"
